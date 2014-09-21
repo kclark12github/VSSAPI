@@ -1,7 +1,7 @@
 VERSION 5.00
-Object = "{6B7E6392-850A-101B-AFC0-4210102A8DA7}#1.2#0"; "COMCTL32.OCX"
-Object = "{F9043C88-F6F2-101A-A3C9-08002B2F49FB}#1.1#0"; "COMDLG32.OCX"
-Object = "{5DC92A4A-C010-11D0-9A9A-00C04FC3066A}#1.0#0"; "DIFFME~1.OCX"
+Object = "{6B7E6392-850A-101B-AFC0-4210102A8DA7}#1.3#0"; "COMCTL32.OCX"
+Object = "{F9043C88-F6F2-101A-A3C9-08002B2F49FB}#1.2#0"; "COMDLG32.OCX"
+Object = "{5DC92A4A-C010-11D0-9A9A-00C04FC3066A}#1.0#0"; "DIFFMERGECTL.OCX"
 Begin VB.Form frmMain 
    Caption         =   "SourceSafe - Visual Basic Style"
    ClientHeight    =   6270
@@ -56,6 +56,7 @@ Begin VB.Form frmMain
             ImageKey        =   "Delete"
          EndProperty
          BeginProperty Button5 {0713F354-850A-101B-AFC0-4210102A8DA7} 
+            Key             =   ""
             Object.Tag             =   ""
             Style           =   4
             MixedState      =   -1  'True
@@ -98,6 +99,7 @@ Begin VB.Form frmMain
             ImageKey        =   "Branch"
          EndProperty
          BeginProperty Button12 {0713F354-850A-101B-AFC0-4210102A8DA7} 
+            Key             =   ""
             Object.Tag             =   ""
             Style           =   3
             MixedState      =   -1  'True
@@ -133,6 +135,7 @@ Begin VB.Form frmMain
             ImageKey        =   "History"
          EndProperty
          BeginProperty Button18 {0713F354-850A-101B-AFC0-4210102A8DA7} 
+            Key             =   ""
             Object.Tag             =   ""
             Style           =   3
             MixedState      =   -1  'True
@@ -225,7 +228,7 @@ Begin VB.Form frmMain
       Top             =   255
       _ExtentX        =   847
       _ExtentY        =   847
-      _Version        =   327681
+      _Version        =   393216
    End
    Begin ComctlLib.ListView ListView1 
       Height          =   3915
@@ -292,6 +295,7 @@ Begin VB.Form frmMain
             Object.Width           =   4921
             Text            =   "Ready"
             TextSave        =   "Ready"
+            Key             =   ""
             Object.Tag             =   ""
          EndProperty
          BeginProperty Panel2 {0713E89F-850A-101B-AFC0-4210102A8DA7} 
@@ -301,15 +305,18 @@ Begin VB.Form frmMain
          EndProperty
          BeginProperty Panel3 {0713E89F-850A-101B-AFC0-4210102A8DA7} 
             TextSave        =   ""
+            Key             =   ""
             Object.Tag             =   ""
          EndProperty
          BeginProperty Panel4 {0713E89F-850A-101B-AFC0-4210102A8DA7} 
             Text            =   "Sort: Name"
             TextSave        =   "Sort: Name"
+            Key             =   ""
             Object.Tag             =   ""
          EndProperty
          BeginProperty Panel5 {0713E89F-850A-101B-AFC0-4210102A8DA7} 
             TextSave        =   ""
+            Key             =   ""
             Object.Tag             =   ""
          EndProperty
       EndProperty
@@ -3528,7 +3535,7 @@ End Sub
 ' This routine populates the ListView and TreeView controls as appropriate
 
 Public Sub PopulateMain(objVSSProject As Object)
-
+    Dim strDebug As String
     Dim Nodex As Node
     Dim WorkingFolder As String
     Dim objVSSLinkItem As VSSItem
@@ -3559,7 +3566,6 @@ Public Sub PopulateMain(objVSSProject As Object)
     
     ' Iterate through all items in current project (false means ignore deleted items)
     For Each objVSSObject In objVSSProject.Items(False)
-            
         ' Reset flag
         FileShared = False
             
@@ -3568,6 +3574,7 @@ Public Sub PopulateMain(objVSSProject As Object)
                     
             ' Current item is a project
             Case 0
+                Debug.Print "Project: " & objVSSObject.Name
             
                 ' Although there is certainly a better way to do this,
                 ' I use the ON ERROR to avoid recreating a node in the
@@ -3585,14 +3592,19 @@ Public Sub PopulateMain(objVSSProject As Object)
             
             ' Current Object is a file
             Case 1
+                Debug.Print "         " & objVSSObject.Name & ";" & objVSSObject.VersionNumber & vbTab & FileDate
                 
                 ' Iterate through the version collection to find file-date of current
                 ' version. Since this will be the first version, get data on first pass
                 ' and then exit for loop
+                If objVSSObject.Name = "frmMain.frm" Then Stop
                 For Each objVSSVersion In objVSSObject.Versions
                     If objVSSVersion.VersionNumber = objVSSObject.VersionNumber Then
                         FileDate = objVSSVersion.Date
-                        Exit For
+                        'Exit For
+                        Debug.Print "       * " & vbTab & objVSSVersion.VersionNumber & vbTab & objVSSVersion.UserName & vbTab & objVSSVersion.Date & vbTab & objVSSVersion.Action & vbTab & "Pinned"
+                    Else
+                        Debug.Print "         " & vbTab & objVSSVersion.VersionNumber & vbTab & objVSSVersion.UserName & vbTab & objVSSVersion.Date & vbTab & objVSSVersion.Action
                     End If
                 Next
                 
@@ -3701,7 +3713,7 @@ Public Sub PopulateMain(objVSSProject As Object)
                 
                 ' Tally number of items in project for display purposes
                 ItemCount = ItemCount + 1
-            
+                
             ' Unknown object type
             Case Else
                 MsgBox ("Unknown object type encountered during Node population!")
